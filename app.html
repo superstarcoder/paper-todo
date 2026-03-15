@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Workspace</title>
+<!-- v2 -->
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+<canvas id="earth-sky"></canvas>
+<div id="app-root">
+  <div class="header">
+    <div class="header-left">
+      <h1><span id="site-title" contenteditable="true" spellcheck="false" onblur="saveTitle()" oninput="enforceTitleLimit(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">My Workspace</span></h1>
+    </div>
+    <div class="header-right">
+      <div class="theme-switcher" title="Customize theme">
+        <button class="theme-mode-btn active" id="btn-light" onclick="setThemeMode('light')" title="Light mode">☀ Light</button>
+        <button class="theme-mode-btn" id="btn-dark" onclick="setThemeMode('dark')" title="Dark mode">◑ Dark</button>
+        <button class="theme-mode-btn" id="btn-earth" onclick="setThemeMode('earth')" title="Earth mode — sky follows the real sun">🌍 Earth</button>
+      </div>
+      <button class="settings-btn" onclick="openSettingsModal()" title="Settings">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M8 1.5v1.2M8 13.3v1.2M1.5 8h1.2M13.3 8h1.2M3.4 3.4l.85.85M11.75 11.75l.85.85M3.4 12.6l.85-.85M11.75 4.25l.85-.85" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Quote Banner -->
+  <div class="quote-banner" id="quote-banner">
+    <div class="quote-icon">"</div>
+    <div class="quote-content">
+      <div class="quote-text" id="quote-text">
+        <span class="quote-shimmer"></span>
+        <span class="quote-shimmer" style="width:60%;margin-top:8px;"></span>
+      </div>
+      <div class="quote-author" id="quote-author"></div>
+    </div>
+    <button class="quote-refresh" onclick="loadQuote()" title="New quote">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M12 7A5 5 0 1 1 7 2a5 5 0 0 1 3.5 1.4L12 2v4H8l1.6-1.6A3 3 0 1 0 10 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" id="stats-row">
+    <div class="stat-card total">
+      <div class="stat-number" id="stat-total">—</div>
+      <div class="stat-label">Total Tasks</div>
+    </div>
+    <div class="stat-card done-stat">
+      <div class="stat-number" id="stat-done">—</div>
+      <div class="stat-label">Completed</div>
+    </div>
+    <div class="stat-card urgent">
+      <div class="stat-number" id="stat-urgent">—</div>
+      <div class="stat-label">High Priority</div>
+    </div>
+    <div class="stat-card today-stat">
+      <div class="stat-number" id="stat-today">—</div>
+      <div class="stat-label">Due Today</div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap" id="progress-wrap">
+    <div class="progress-header">
+      <span class="progress-title">Overall Progress</span>
+      <span class="progress-pct" id="pct-label">0%</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="search" type="text" placeholder="Search tasks…" oninput="renderTable()">
+    </div>
+    <select class="filter-select" id="filter-cat" onchange="renderTable()">
+      <option value="">All Categories</option>
+    </select>
+    <select class="filter-select" id="filter-priority" onchange="renderTable()">
+      <option value="">All Priorities</option>
+      <option value="High">High</option>
+      <option value="Medium">Medium</option>
+      <option value="Low">Low</option>
+    </select>
+    <select class="filter-select" id="filter-status" onchange="renderTable()">
+      <option value="">All Status</option>
+      <option value="active">Active</option>
+      <option value="completed">Completed</option>
+    </select>
+    <button class="btn btn-today" id="btn-today" onclick="toggleTodayFilter()">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="2" width="11" height="10" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M4 1v2M9 1v2M1 5h11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Today
+    </button>
+    <button class="btn btn-ghost" onclick="openCatModal()" title="Manage categories">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="2" stroke="currentColor" stroke-width="1.4"/><path d="M6.5 1v1.5M6.5 10.5V12M1 6.5h1.5M10.5 6.5H12M2.6 2.6l1.1 1.1M9.3 9.3l1.1 1.1M9.3 3.7 8.2 4.8M3.7 9.3l-1.1 1.1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Categories
+    </button>
+    <div class="view-toggle">
+      <button class="view-btn active" id="btn-list" onclick="setView('list')" title="List view">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="1.8" rx="0.9" fill="currentColor"/><rect x="1" y="6.1" width="12" height="1.8" rx="0.9" fill="currentColor"/><rect x="1" y="10.2" width="12" height="1.8" rx="0.9" fill="currentColor"/></svg>
+        List
+      </button>
+      <button class="view-btn" id="btn-grid" onclick="setView('grid')" title="Grid view">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="5.5" height="5.5" rx="1" fill="currentColor"/><rect x="7.5" y="1" width="5.5" height="5.5" rx="1" fill="currentColor"/><rect x="1" y="7.5" width="5.5" height="5.5" rx="1" fill="currentColor"/><rect x="7.5" y="7.5" width="5.5" height="5.5" rx="1" fill="currentColor"/></svg>
+        Grid
+      </button>
+      <button class="view-btn" id="btn-stats" onclick="setView('stats')" title="Stats view">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="7" width="3" height="6" rx="0.8" fill="currentColor"/><rect x="5.5" y="4" width="3" height="9" rx="0.8" fill="currentColor"/><rect x="10" y="1" width="3" height="12" rx="0.8" fill="currentColor"/></svg>
+        Stats
+      </button>
+    </div>
+    <button class="btn btn-primary" onclick="openModal()">＋ Add Task</button>
+  </div>
+  <!-- Table -->
+  <div class="table-wrap" id="view-list">
+    <div class="type-tabs">
+      <button class="type-tab active" id="tab-all"     onclick="setTypeFilter('all')">All</button>
+      <button class="type-tab"        id="tab-tasks"   onclick="setTypeFilter('tasks')">Tasks</button>
+      <button class="type-tab"        id="tab-habits"  onclick="setTypeFilter('habits')">
+        <svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="margin-right:3px;"><path d="M5.5 1a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z" stroke="currentColor" stroke-width="1.3"/><path d="M5.5 3.5v2l1.5 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        Habits
+      </button>
+      <button class="type-tab"        id="tab-tracker" onclick="setTypeFilter('tracker')">
+        <svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="margin-right:3px;"><polyline points="1,9 3.5,5 6,7 9,2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        Tracker
+      </button>
+    </div>
+    <table id="task-table">
+      <thead>
+        <tr>
+          <th style="width:36px;"></th>
+          <th onclick="sortBy('name')">Task <span class="sort-icon" id="sort-name">↕</span></th>
+          <th onclick="sortBy('category')">Category <span class="sort-icon" id="sort-category">↕</span></th>
+          <th onclick="sortBy('priority')">Priority <span class="sort-icon" id="sort-priority">↕</span></th>
+          <th onclick="sortBy('startDate')">Start <span class="sort-icon" id="sort-startDate">↕</span></th>
+          <th onclick="sortBy('dueDate')">Due Date <span class="sort-icon" id="sort-dueDate">↕</span></th>
+          <th style="width:80px;"></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+      <tbody id="quick-add-tbody">
+        <tr id="quick-add-row">
+          <td style="padding-left:12px; width:36px;">
+            <div style="width:18px;height:18px;border-radius:50%;border:1.5px dashed var(--border);opacity:0.5;"></div>
+          </td>
+          <td>
+            <input class="qa-input" id="qa-name" placeholder="＋ Add a task…" autocomplete="off"
+              onkeydown="qaKeydown(event)"
+              onfocus="qaFocus()" />
+          </td>
+          <td class="qa-hide-unfocused">
+            <select class="qa-select" id="qa-category" onkeydown="qaKeydown(event)">
+              <option value="">— Category</option>
+            </select>
+          </td>
+          <td class="qa-hide-unfocused">
+            <select class="qa-select" id="qa-priority" onkeydown="qaKeydown(event)">
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+              <option value="Low">Low</option>
+            </select>
+          </td>
+          <td class="qa-hide-unfocused">
+            <input type="date" class="qa-date" id="qa-start" onkeydown="qaKeydown(event)" />
+          </td>
+          <td class="qa-hide-unfocused">
+            <input type="date" class="qa-date" id="qa-due" onkeydown="qaKeydown(event)" />
+          </td>
+          <td class="qa-hide-unfocused">
+            <button style="font-size:11px;padding:4px 10px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;white-space:nowrap;" onclick="qaCommit()">Add ↵</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <!-- Tracker Panel -->
+    <div id="tracker-panel" style="display:none;">
+      <div class="tracker-toolbar">
+        <span class="tracker-toolbar-label">Your trackers</span>
+        <button class="btn btn-primary" onclick="openTrackerModal()">＋ New Tracker</button>
+      </div>
+      <div id="tracker-list"></div>
+      <div id="tracker-empty" class="empty-state" style="display:none;">
+        <div class="icon">📈</div>
+        <p>No trackers yet. Add one to start logging data.</p>
+      </div>
+    </div>
+  </div><!-- /table-wrap -->
+
+  <!-- Grid View -->
+  <div id="view-grid" style="display:none;">
+    <div class="grid-scroll-wrap">
+      <div class="grid-table-wrap" id="grid-container"></div>
+    </div>
+  </div>
+
+  <!-- Stats View -->
+  <div id="view-stats" style="display:none;">
+    <div class="stats-page" id="stats-page"></div>
+  </div>
+
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-bg" id="modal-bg" onclick="closeModalBg(event)">
+  <div class="modal">
+    <h2 id="modal-title">New Task</h2>
+    <div class="form-group">
+      <label>Task Name *</label>
+      <input type="text" id="f-name" placeholder="What needs to be done?">
+    </div>
+    <div class="form-group">
+      <label>Details / Notes</label>
+      <textarea id="f-details" placeholder="Optional details…"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Category</label>
+        <select id="f-cat">
+          <option value="">—</option>
+          <option value="School">School</option>
+          <option value="Work">Work</option>
+          <option value="Job">Job Search</option>
+          <option value="Personal">Personal</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Priority</label>
+        <select id="f-priority">
+          <option value="">—</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Start Date</label>
+        <input type="date" id="f-start">
+      </div>
+      <div class="form-group" id="f-due-group">
+        <label>Due Date</label>
+        <input type="date" id="f-due">
+      </div>
+    </div>
+
+    <!-- Habit toggle -->
+    <div class="form-group" style="margin-top:4px;">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;">
+        <div class="habit-toggle-wrap" onclick="toggleHabitMode()">
+          <div class="habit-toggle" id="habit-toggle"></div>
+        </div>
+        <span style="font-size:13px;font-weight:500;color:var(--text);">Repeating habit</span>
+        <span style="font-size:12px;color:var(--text-faint);">Recurs on selected days</span>
+      </label>
+    </div>
+    <div id="habit-days-wrap" style="display:none;margin-top:2px;">
+      <label style="font-size:12px;color:var(--text-muted);margin-bottom:6px;display:block;">Repeat on</label>
+      <div class="day-picker" id="day-picker">
+        <button type="button" class="day-btn" data-day="1" onclick="toggleDay(1)">M</button>
+        <button type="button" class="day-btn" data-day="2" onclick="toggleDay(2)">T</button>
+        <button type="button" class="day-btn" data-day="3" onclick="toggleDay(3)">W</button>
+        <button type="button" class="day-btn" data-day="4" onclick="toggleDay(4)">Th</button>
+        <button type="button" class="day-btn" data-day="5" onclick="toggleDay(5)">F</button>
+        <button type="button" class="day-btn" data-day="6" onclick="toggleDay(6)">Sa</button>
+        <button type="button" class="day-btn" data-day="0" onclick="toggleDay(0)">Su</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-danger-ghost" id="modal-delete-btn" onclick="deleteFromModal()" style="display:none;margin-right:auto;">🗑 Delete</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTask()">Save Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tracker Modal -->
+<div class="modal-bg" id="tracker-modal-bg" onclick="closeTrackerModalBg(event)">
+  <div class="modal" style="max-width:380px;">
+    <h2 id="tracker-modal-title">New Tracker</h2>
+    <div class="form-group">
+      <label>Label *</label>
+      <input type="text" id="tf-label" placeholder="e.g. Weight, Steps, Sleep hours…">
+    </div>
+    <div class="form-group">
+      <label>Unit</label>
+      <input type="text" id="tf-unit" placeholder="e.g. lb, km, hrs, cups…">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-danger-ghost" id="tracker-delete-btn" onclick="deleteTrackerFromModal()" style="display:none;margin-right:auto;">🗑 Delete</button>
+      <button class="btn btn-ghost" onclick="closeTrackerModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTracker()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tracker Entry Modal -->
+<div class="modal-bg" id="entry-modal-bg" onclick="closeEntryModalBg(event)">
+  <div class="modal" style="max-width:340px;">
+    <h2 id="entry-modal-title">Log Entry</h2>
+    <div class="form-group">
+      <label>Date</label>
+      <input type="date" id="ef-date">
+    </div>
+    <div class="form-group">
+      <label id="ef-value-label">Value</label>
+      <input type="number" id="ef-value" placeholder="0" step="any">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-danger-ghost" id="entry-delete-btn" onclick="deleteEntryFromModal()" style="display:none;margin-right:auto;">🗑 Delete</button>
+      <button class="btn btn-ghost" onclick="closeEntryModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEntry()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-bg" id="settings-modal-bg" onclick="closeSettingsModalBg(event)">
+  <div class="modal" style="max-width:460px;">
+    <h2 style="margin-bottom:6px;">Settings</h2>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">Manage your workspace preferences and data.</p>
+
+    <div class="settings-section">
+      <div class="settings-section-title">Data</div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-row-label">Export as CSV</div>
+          <div class="settings-row-sub">Download all tasks, habits, and tracker entries as a spreadsheet-ready CSV file.</div>
+        </div>
+        <button class="btn btn-primary" style="white-space:nowrap;flex-shrink:0;" onclick="exportCSV()">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="margin-right:5px;"><path d="M6.5 1v7M3.5 5.5l3 3 3-3M1.5 10h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Download CSV
+        </button>
+      </div>
+    </div>
+
+    <div class="modal-actions" style="margin-top:24px;">
+      <button class="btn btn-ghost" onclick="closeSettingsModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-bg" id="cat-modal-bg" onclick="closeCatModalBg(event)">
+  <div class="modal" style="max-width:400px;">
+    <h2>Manage Categories</h2>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:18px;">Add or remove task categories. Categories in use can't be deleted.</p>
+    <div id="cat-list" style="margin-bottom:16px;display:flex;flex-direction:column;gap:8px;"></div>
+    <div style="display:flex;gap:8px;">
+      <input type="text" id="new-cat-input" placeholder="New category name…" style="flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;background:var(--bg);" onkeydown="if(event.key==='Enter')addCategory()">
+      <button class="btn btn-primary" onclick="addCategory()">Add</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeCatModal()">Done</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /app-root -->
+
+<!-- Earth time widget -->
+<div id="earth-time-widget">
+  <div class="earth-time-row" onclick="toggleEarthTimeEdit()">
+    <div>
+      <div class="earth-time-display" id="earth-time-display">00:00</div>
+      <div class="earth-date-display" id="earth-date-display">—</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:18px;" id="earth-phase-icon">☀️</div>
+      <div class="earth-phase-badge" id="earth-phase-label">day</div>
+    </div>
+  </div>
+  <div class="earth-time-edit" id="earth-time-edit">
+    <input type="datetime-local" id="earth-dt-input" oninput="earthPreview()" />
+    <div class="earth-time-btn-row">
+      <button class="earth-time-btn" onclick="earthResetTime()">Now</button>
+      <button class="earth-time-btn primary" onclick="earthApplyTime()">Apply ↵</button>
+    </div>
+  </div>
+</div>
+
+  <script src="js/state.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/habits.js"></script>
+  <script src="js/trackers.js"></script>
+  <script src="js/earth.js"></script>
+  <script src="js/categories.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/actions.js"></script>
+  <script src="js/grid.js"></script>
+  <script src="js/init.js"></script>
+</body>
+</html>

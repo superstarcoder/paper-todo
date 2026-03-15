@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Why I Built the Simplest Todo App — Paper Todo</title>
+<meta name="description" content="I was a college student drowning in productivity app setups. So I built Paper Todo, a minimalist todo app with no login, no ads, and no noise.">
+<meta name="robots" content="index, follow">
+<meta name="author" content="Paper Todo">
+<link rel="canonical" href="https://papertodo.app/blog/why-i-built-the-simplest-todo-app.html">
+
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Paper Todo">
+<meta property="og:title" content="Why I Built the Simplest Todo App">
+<meta property="og:description" content="I was a college student drowning in productivity app setups. So I built Paper Todo, a minimalist todo app with no login, no ads, and no noise.">
+<meta property="og:url" content="https://papertodo.app/blog/why-i-built-the-simplest-todo-app.html">
+<meta property="article:published_time" content="2026-03-15">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Why I Built the Simplest Todo App">
+<meta name="twitter:description" content="I was a college student drowning in productivity app setups. So I built Paper Todo. Minimalist, no login, no noise.">
+
+<!-- Structured data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Why I Built the Simplest Todo App",
+  "description": "A college student who was overwhelmed by complex productivity apps built Paper Todo, a minimalist todo app with no login required.",
+  "author": {
+    "@type": "Person",
+    "name": "Paper Todo"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Paper Todo",
+    "url": "https://papertodo.app"
+  },
+  "datePublished": "2026-03-15",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://papertodo.app/blog/why-i-built-the-simplest-todo-app.html"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home",  "item": "https://papertodo.app/" },
+    { "@type": "ListItem", "position": 2, "name": "Blog",  "item": "https://papertodo.app/blog/" },
+    { "@type": "ListItem", "position": 3, "name": "Why I Built the Simplest Todo App" }
+  ]
+}
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f2ec;
+    --surface: #fdfbf7;
+    --surface2: #f0ece3;
+    --border: #e2ddd4;
+    --text: #1a1814;
+    --text-muted: #7a7060;
+    --text-faint: #b0a898;
+    --accent: #2d5a3d;
+    --accent-light: #e8f0eb;
+    --accent-mid: #4a8a5e;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(circle, #c8c0b0 1px, transparent 1px);
+    background-size: 28px 28px;
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Nav */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(245,242,236,0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .nav-logo {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 1.25rem;
+    color: var(--text);
+    text-decoration: none;
+    letter-spacing: -0.01em;
+  }
+
+  .nav-links { display: flex; align-items: center; gap: 20px; }
+
+  .nav-link {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .nav-link:hover { color: var(--text); }
+
+  .nav-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 7px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .nav-cta:hover { background: #245030; transform: translateY(-1px); }
+
+  /* Breadcrumb */
+  .breadcrumb {
+    position: relative;
+    z-index: 1;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px 32px 0;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.78rem;
+    color: var(--text-faint);
+  }
+
+  .breadcrumb a {
+    color: var(--text-faint);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .breadcrumb a:hover { color: var(--accent); }
+  .breadcrumb-sep { opacity: 0.5; }
+
+  /* Article layout */
+  article {
+    position: relative;
+    z-index: 1;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 48px 32px 100px;
+  }
+
+  /* Header */
+  .article-header { margin-bottom: 48px; }
+
+  .article-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 100px;
+    border: 1px solid #c8ddd0;
+    margin-bottom: 20px;
+  }
+
+  .article-title {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+
+  .article-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .article-meta-item {
+    font-size: 0.8rem;
+    color: var(--text-faint);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .article-meta-divider {
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: var(--text-faint);
+    opacity: 0.4;
+  }
+
+  /* Body */
+  .article-body { font-size: 1.05rem; color: var(--text-muted); }
+
+  .article-body p {
+    margin-bottom: 1.6em;
+    line-height: 1.78;
+  }
+
+  .article-body h2 {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 1.5rem;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin: 2.2em 0 0.7em;
+    line-height: 1.2;
+  }
+
+  .article-body strong { color: var(--text); font-weight: 600; }
+
+  .article-body em { font-style: italic; }
+
+  .article-body a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: #a8ccb8;
+    transition: text-decoration-color 0.15s;
+  }
+  .article-body a:hover { text-decoration-color: var(--accent); }
+
+  /* Pull quote */
+  .pull-quote {
+    border-left: 3px solid var(--accent);
+    padding: 4px 0 4px 24px;
+    margin: 2em 0;
+  }
+
+  .pull-quote p {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 1.25rem;
+    color: var(--text);
+    font-style: italic;
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  /* CTA box */
+  .article-cta {
+    background: var(--accent);
+    border-radius: 14px;
+    padding: 32px 36px;
+    margin-top: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .article-cta-text h3 {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 1.4rem;
+    color: #fff;
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+
+  .article-cta-text p {
+    font-size: 0.875rem;
+    color: rgba(255,255,255,0.65);
+    margin: 0;
+  }
+
+  .article-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    color: var(--accent);
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 11px 24px;
+    border-radius: 9px;
+    text-decoration: none;
+    white-space: nowrap;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    transition: transform 0.12s, box-shadow 0.15s;
+  }
+  .article-cta-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.18); }
+
+  /* Divider */
+  .article-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 48px 0;
+  }
+
+  /* Back link */
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    margin-top: 48px;
+    transition: color 0.15s;
+  }
+  .back-link:hover { color: var(--accent); }
+
+  /* Footer */
+  footer {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid var(--border);
+    padding: 28px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-logo {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 1rem;
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .footer-copy { font-size: 0.78rem; color: var(--text-faint); }
+
+  @media (max-width: 600px) {
+    nav { padding: 0 20px; }
+    .nav-link { display: none; }
+    .breadcrumb { padding: 20px 20px 0; }
+    article { padding: 36px 20px 72px; }
+    .article-cta { padding: 24px; flex-direction: column; align-items: flex-start; }
+    footer { flex-direction: column; gap: 8px; text-align: center; padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="../index.html">Paper Todo</a>
+  <div class="nav-links">
+    <a class="nav-link" href="../blog/index.html">Blog</a>
+    <a class="nav-link" href="../privacy.html">Privacy</a>
+    <a class="nav-cta" href="../app.html">
+      Open App
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2.5 6.5h8M7 3l3.5 3.5L7 10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+</nav>
+
+<nav aria-label="Breadcrumb" class="breadcrumb">
+  <a href="../index.html">Home</a>
+  <span class="breadcrumb-sep">›</span>
+  <a href="../blog/index.html">Blog</a>
+  <span class="breadcrumb-sep">›</span>
+  <span>Why I Built the Simplest Todo App</span>
+</nav>
+
+<article>
+  <header class="article-header">
+    <div class="article-tag">Founder story</div>
+    <h1 class="article-title">Why I Built the Simplest Todo App</h1>
+    <div class="article-meta">
+      <span class="article-meta-item">March 15, 2026</span>
+      <span class="article-meta-divider"></span>
+      <span class="article-meta-item">5 min read</span>
+      <span class="article-meta-divider"></span>
+      <span class="article-meta-item">By the maker of Paper Todo</span>
+    </div>
+  </header>
+
+  <div class="article-body">
+
+    <p>I've downloaded probably twenty productivity apps over the last two years. I installed them with the same optimism every time and abandoned them within a week. Not because they were bad. Some of them are genuinely impressive pieces of software. But none of them felt like <em>mine</em>.</p>
+
+    <h2>I just want customization. I'm tired of the noise.</h2>
+
+    <p>What I actually wanted was something I could make my own, with categories that match my life and a look that feels right, without spending an afternoon in settings. I want to set my categories once and never think about it again. I want the tool to fit around my life, not the other way around.</p>
+
+    <p>Most apps give you two options: their rigid structure, or infinite configuration that becomes its own full-time job. I wanted the middle ground. Enough customization to feel personal, simple enough that setup takes thirty seconds.</p>
+
+    <h2>I needed everything in one place.</h2>
+
+    <p>I'm a college student. On any given day my todo list spans five completely different worlds: coursework and deadlines, the gym and what I'm cooking this week, catching up with friends, job applications, random errands. Keeping separate apps for each of these felt insane. But cramming them all into one tool with no way to organize them felt worse.</p>
+
+    <p>I needed categories. I needed to be able to glance at my week and see where everything stands. A weekly grid view, basically. Something that shows me my whole life at once without making me feel like I'm managing a Fortune 500 company.</p>
+
+    <h2>The UI had to feel good.</h2>
+
+    <p>I'm particular about how things look. An ugly tool makes me not want to open it. That sounds shallow but I think it's actually important. If the app doesn't feel pleasant to use, you'll avoid it, and then what's the point?</p>
+
+    <p>I wanted something that felt like opening a fresh notebook. Clean, calm, unhurried. The satisfaction of a tool that respects your attention rather than competing for it. No notification badges, no gamification dark patterns, no inbox asking to be cleared. Just your tasks, laid out clearly, waiting for you.</p>
+
+    <h2>I'm tired of not knowing what happens to my data.</h2>
+
+    <p>This one is personal. I've signed up for apps and had no idea what was being done with the data I put into them. Are my tasks being analyzed? Is my usage being sold to advertisers? Most apps bury this in a privacy policy nobody reads.</p>
+
+    <p>With Paper Todo, your data lives on your device. No accounts, no servers on our end holding your tasks. It's stored in your browser's local storage and goes nowhere. You can export it any time as a CSV. There are no ads, ever, because I'm not interested in building a business model that treats your attention as the product. I want to build something you trust.</p>
+
+    <h2>Built by a college student, for real life.</h2>
+
+    <p>I'm not a startup with a team of designers and engineers. I built this because I needed it. That means it's built for real life, for people juggling school, work, the gym, a social life, and everything else that doesn't fit neatly into a work project management tool.</p>
+
+    <p>Anyone can use it. You don't need to be a productivity nerd or a developer or someone with a carefully optimized morning routine. You just need a place to put your stuff and check it off.</p>
+
+    <h2>I fell in love with using my own product.</h2>
+
+    <p>I didn't expect this part. I built Paper Todo to scratch my own itch, and somewhere along the way I genuinely fell in love with using it. Checking something off feels satisfying in a way that surprised me. Watching a habit streak grow actually motivates me to keep going. The stats page, which I almost didn't build, makes me want to do more just to see the numbers move.</p>
+
+    <p>There's something about a tool this frictionless that makes you actually want to use it. I open it every morning. That's the best thing I can say about it.</p>
+
+    <h2>I had to stop configuring and start doing.</h2>
+
+    <p>Some of the apps I tried are genuinely powerful. Endlessly flexible. But that flexibility was the problem. Every time I opened them I had a small existential crisis. Is this task a database entry? A page? Should I use a kanban view or a table? Should this live in my personal space or the workspace I set up last month and never touched again?</p>
+
+    <p>I just wanted to write down "do the laundry." I didn't need a relational database for that.</p>
+
+    <div class="pull-quote">
+      <p>"I spent more time configuring my productivity system than actually being productive."</p>
+    </div>
+
+    <p>The irony hit me one afternoon when I realized I'd spent two hours redesigning a productivity dashboard instead of doing any of the work inside it. That was the moment I decided to build something different.</p>
+
+    <h2>Paper Todo. Just like writing on paper.</h2>
+
+    <p>The name says it. It's a todo list. Like writing on a piece of paper, except it remembers everything, shows you your habits over time, and never gets lost under a pile of textbooks.</p>
+
+    <p>No login. No setup. <a href="../app.html">Just open it and start.</a> That's the whole point.</p>
+
+    <hr class="article-divider">
+
+    <div class="article-cta">
+      <div class="article-cta-text">
+        <h3>Try Paper Todo</h3>
+        <p>No account. No setup. Opens in seconds.</p>
+      </div>
+      <a class="article-cta-btn" href="../app.html">
+        Open App
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+
+    <a class="back-link" href="../blog/index.html">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M9 6.5H2.5M5 3.5L2 6.5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Back to blog
+    </a>
+
+  </div>
+</article>
+
+<footer>
+  <a class="footer-logo" href="../index.html">Paper Todo</a>
+  <div class="footer-copy"><a href="../privacy.html" style="color:inherit;text-underline-offset:3px;">Privacy Policy</a></div>
+</footer>
+
+</body>
+</html>

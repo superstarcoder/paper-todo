@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog — Paper Todo</title>
+<meta name="description" content="Thoughts on productivity, minimalism, and building tools that stay out of your way. From the makers of Paper Todo.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://papertodo.app/blog/">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Paper Todo">
+<meta property="og:title" content="Blog — Paper Todo">
+<meta property="og:description" content="Thoughts on productivity, minimalism, and building tools that stay out of your way.">
+<meta property="og:url" content="https://papertodo.app/blog/">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Blog — Paper Todo">
+<meta name="twitter:description" content="Thoughts on productivity, minimalism, and building tools that stay out of your way.">
+
+<!-- Structured data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Blog",
+  "name": "Paper Todo Blog",
+  "url": "https://papertodo.app/blog/",
+  "description": "Thoughts on productivity, minimalism, and building tools that stay out of your way.",
+  "publisher": {
+    "@type": "Organization",
+    "name": "Paper Todo",
+    "url": "https://papertodo.app"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://papertodo.app/" },
+    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://papertodo.app/blog/" }
+  ]
+}
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f2ec;
+    --surface: #fdfbf7;
+    --surface2: #f0ece3;
+    --border: #e2ddd4;
+    --border-strong: #ccc7bb;
+    --text: #1a1814;
+    --text-muted: #7a7060;
+    --text-faint: #b0a898;
+    --accent: #2d5a3d;
+    --accent-light: #e8f0eb;
+    --accent-mid: #4a8a5e;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(circle, #c8c0b0 1px, transparent 1px);
+    background-size: 28px 28px;
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Nav */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(245,242,236,0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .nav-logo {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 1.25rem;
+    color: var(--text);
+    text-decoration: none;
+    letter-spacing: -0.01em;
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .nav-link {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .nav-link:hover { color: var(--accent); }
+  .nav-link.active { color: var(--accent); }
+
+  .nav-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent);
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 7px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .nav-cta:hover { background: #245030; transform: translateY(-1px); }
+
+  /* Page layout */
+  .page {
+    position: relative;
+    z-index: 1;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 72px 32px 100px;
+  }
+
+  /* Breadcrumb */
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: var(--text-faint);
+    margin-bottom: 48px;
+  }
+  .breadcrumb a {
+    color: var(--text-faint);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .breadcrumb a:hover { color: var(--accent); }
+  .breadcrumb-sep { color: var(--border-strong); }
+
+  /* Header */
+  .page-eyebrow {
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-mid);
+    margin-bottom: 16px;
+  }
+
+  .page-title {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    margin-bottom: 16px;
+  }
+
+  .page-subtitle {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    max-width: 500px;
+    margin-bottom: 64px;
+  }
+
+  /* Post list */
+  .post-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .post-card {
+    display: block;
+    padding: 36px 0;
+    border-bottom: 1px solid var(--border);
+    text-decoration: none;
+    color: inherit;
+    transition: none;
+  }
+  .post-card:first-child { border-top: 1px solid var(--border); }
+
+  .post-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .post-date {
+    font-size: 0.78rem;
+    color: var(--text-faint);
+    font-weight: 400;
+  }
+
+  .post-tag {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--accent-mid);
+    background: var(--accent-light);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .post-title {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 1.5rem;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    color: var(--text);
+    margin-bottom: 10px;
+    transition: color 0.15s;
+  }
+  .post-card:hover .post-title { color: var(--accent); }
+
+  .post-excerpt {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    line-height: 1.65;
+    max-width: 600px;
+    margin-bottom: 16px;
+  }
+
+  .post-readmore {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.83rem;
+    font-weight: 500;
+    color: var(--accent);
+    transition: gap 0.15s;
+  }
+  .post-card:hover .post-readmore { gap: 10px; }
+
+  /* Footer */
+  footer {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid var(--border);
+    padding: 28px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-logo {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 1rem;
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 20px;
+  }
+
+  .footer-link {
+    font-size: 0.78rem;
+    color: var(--text-faint);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .footer-link:hover { color: var(--accent); }
+
+  @media (max-width: 600px) {
+    nav { padding: 0 20px; }
+    .page { padding: 48px 20px 72px; }
+    footer { flex-direction: column; gap: 12px; text-align: center; padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="../index.html">Paper Todo</a>
+  <div class="nav-right">
+    <a class="nav-link active" href="index.html">Blog</a>
+    <a class="nav-cta" href="../app.html">
+      Open app
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2.5 6.5h8M7 3l3.5 3.5L7 10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="../index.html">Home</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>Blog</span>
+  </nav>
+
+  <div class="page-eyebrow">The Paper Todo Blog</div>
+  <h1 class="page-title">Thoughts on doing less, better.</h1>
+  <p class="page-subtitle">On productivity, simplicity, and building tools that get out of your way.</p>
+
+  <main>
+    <div class="post-list" role="list">
+
+      <a class="post-card" href="why-i-built-the-simplest-todo-app.html" role="listitem">
+        <div class="post-meta">
+          <span class="post-date">March 15, 2026</span>
+          <span class="post-tag">Story</span>
+        </div>
+        <h2 class="post-title">Why I Built the Simplest Todo App</h2>
+        <p class="post-excerpt">I was a college student drowning in Notion dashboards, five-step morning routines, and productivity apps that needed their own tutorial. So I stopped using all of them and built something that works the way a paper notebook does.</p>
+        <span class="post-readmore">
+          Read more
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2.5 6.5h8M7 3l3.5 3.5L7 10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </a>
+
+    </div>
+  </main>
+
+</div>
+
+<footer>
+  <a class="footer-logo" href="../index.html">Paper Todo</a>
+  <div class="footer-links">
+    <a class="footer-link" href="../app.html">Open app</a>
+    <a class="footer-link" href="../privacy.html">Privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

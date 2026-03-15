@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy | Paper Todo</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f2ec;
+    --surface: #fdfbf7;
+    --surface2: #f0ece3;
+    --border: #e2ddd4;
+    --border-strong: #ccc7bb;
+    --text: #1a1814;
+    --text-muted: #7a7060;
+    --text-faint: #b0a898;
+    --accent: #2d5a3d;
+    --accent-light: #e8f0eb;
+    --accent-mid: #4a8a5e;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(circle, #c8c0b0 1px, transparent 1px);
+    background-size: 28px 28px;
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Nav */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(245,242,236,0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .nav-logo {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 1.25rem;
+    color: var(--text);
+    text-decoration: none;
+    letter-spacing: -0.01em;
+  }
+
+  .nav-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .nav-back:hover { color: var(--accent); }
+
+  /* Content */
+  .page {
+    position: relative;
+    z-index: 1;
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 72px 32px 100px;
+  }
+
+  .page-eyebrow {
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-mid);
+    margin-bottom: 16px;
+  }
+
+  .page-title {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    margin-bottom: 12px;
+  }
+
+  .page-date {
+    font-size: 0.82rem;
+    color: var(--text-faint);
+    margin-bottom: 48px;
+  }
+
+  /* Sections */
+  .policy-section {
+    margin-bottom: 44px;
+    padding-bottom: 44px;
+    border-bottom: 1px solid var(--border);
+  }
+  .policy-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  h2 {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 1.25rem;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  p {
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+  p:last-child { margin-bottom: 0; }
+
+  ul {
+    list-style: none;
+    margin: 12px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  li {
+    display: flex;
+    gap: 10px;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  li::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--accent-mid);
+    flex-shrink: 0;
+    margin-top: 9px;
+  }
+
+  /* Highlight box */
+  .highlight-box {
+    background: var(--accent-light);
+    border: 1px solid #c8ddd0;
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin-bottom: 14px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .highlight-box-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .highlight-box p {
+    margin: 0;
+    color: var(--accent);
+    font-weight: 500;
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+
+  /* Third-party table */
+  .third-party {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.875rem;
+  }
+
+  .third-party th {
+    text-align: left;
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-faint);
+    padding: 0 12px 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .third-party td {
+    padding: 10px 12px 10px 0;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  .third-party tr:last-child td { border-bottom: none; }
+
+  .third-party td:first-child { color: var(--text); font-weight: 500; }
+
+  a.inline-link {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: #a8ccb8;
+    transition: text-decoration-color 0.15s;
+  }
+  a.inline-link:hover { text-decoration-color: var(--accent); }
+
+  /* Footer */
+  footer {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid var(--border);
+    padding: 28px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-logo {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 1rem;
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .footer-copy { font-size: 0.78rem; color: var(--text-faint); }
+
+  @media (max-width: 600px) {
+    nav { padding: 0 20px; }
+    .page { padding: 48px 20px 72px; }
+    footer { flex-direction: column; gap: 8px; text-align: center; padding: 24px 20px; }
+    .third-party th:last-child,
+    .third-party td:last-child { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">Paper Todo</a>
+  <a class="nav-back" href="index.html">
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M9 6.5H2.5M5 3.5L2 6.5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Back
+  </a>
+</nav>
+
+<div class="page">
+
+  <div class="page-eyebrow">Legal</div>
+  <h1 class="page-title">Privacy Policy</h1>
+  <div class="page-date">Last updated: March 15, 2026</div>
+
+  <div class="policy-section">
+    <div class="highlight-box">
+      <div class="highlight-box-icon">☁</div>
+      <p>The short version: Paper Todo does not collect your personal data, does not run ads, and does not sell anything about you to anyone. Your tasks, habits, and logs live on your own device.</p>
+    </div>
+  </div>
+
+  <div class="policy-section">
+    <h2>What we store and where</h2>
+    <p>All of your workspace data (tasks, habits, trackers, categories, and settings) is stored exclusively in your browser's <strong>localStorage</strong> under the key <code style="font-family:monospace;font-size:0.85em;background:var(--surface2);padding:1px 5px;border-radius:3px;color:var(--text)">tracker_v1</code>. This data never leaves your device and is never transmitted to any server we operate.</p>
+    <p>Clearing your browser data or localStorage will permanently delete your workspace. We recommend using the CSV export (Settings menu) to keep a backup.</p>
+  </div>
+
+  <div class="policy-section">
+    <h2>Third-party services</h2>
+    <p>Paper Todo loads a small number of external resources to function. Here is exactly what they are and what they may see:</p>
+
+    <table class="third-party">
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>Purpose</th>
+          <th>What they may receive</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Google Fonts</td>
+          <td>Loads Instrument Serif and DM Sans typefaces</td>
+          <td>Your IP address and browser headers, per Google's standard CDN logging. <a class="inline-link" href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google's privacy policy</a></td>
+        </tr>
+        <tr>
+          <td>ZenQuotes API</td>
+          <td>Fetches a random motivational quote shown in the app</td>
+          <td>Your IP address via the allorigins.win CORS proxy. No personal data is sent. The quote fetch is optional and fails silently if unavailable.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>No analytics, no tracking pixels, no advertising SDKs, no session recording. That's the complete list.</p>
+  </div>
+
+  <div class="policy-section">
+    <h2>Cookies</h2>
+    <p>Paper Todo does not use cookies. The only browser storage used is localStorage, which is not transmitted with requests and is not accessible to third parties.</p>
+  </div>
+
+  <div class="policy-section">
+    <h2>Your data rights</h2>
+    <p>Because we hold no personal data on our servers, there is nothing for us to delete, export, or correct on your behalf. Your data is already entirely yours:</p>
+    <ul>
+      <li><strong>To export:</strong> use the CSV export option in the Settings menu inside the app.</li>
+      <li><strong>To delete:</strong> clear localStorage in your browser's developer tools or site settings.</li>
+      <li><strong>To transfer:</strong> export as CSV and import it wherever you like.</li>
+    </ul>
+  </div>
+
+  <div class="policy-section">
+    <h2>Future changes</h2>
+    <p>We may introduce optional account-based features in the future (such as cross-device sync). These will always be opt-in. If and when that happens, this policy will be updated to clearly describe what additional data is collected, how it is stored, and how you can remove it. We will never collect data silently.</p>
+  </div>
+
+  <div class="policy-section">
+    <h2>Contact</h2>
+    <p>Questions about this policy? Reach out and we'll give you a straight answer: <a class="inline-link" href="mailto:dhanishnatarajan@gmail.com">dhanishnatarajan@gmail.com</a></p>
+  </div>
+
+</div>
+
+<footer>
+  <a class="footer-logo" href="index.html">Paper Todo</a>
+  <div class="footer-copy">You own your data. Full transparency, always.</div>
+</footer>
+
+</body>
+</html>
