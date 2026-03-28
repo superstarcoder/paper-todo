@@ -55,7 +55,19 @@
         tasks, categories, catColors, colWidths, nextId,
         trackers, nextTrackerId,
         theme: currentTheme,
-        title: document.getElementById('site-title')?.textContent.trim() || 'My Workspace'
+        title: document.getElementById('site-title')?.textContent.trim() || 'My Workspace',
+        uiConfig: {
+          view: currentView,
+          todayFilter: todayFilterActive,
+          filterType,
+          sortKey,
+          sortDir,
+          statsPeriod,
+          gridWeekOffset,
+          filterCat:    document.getElementById('filter-cat')?.value    || '',
+          filterPri:    document.getElementById('filter-priority')?.value || '',
+          filterStatus: document.getElementById('filter-status')?.value  || '',
+        }
       }));
     } catch(e) { /* storage full or unavailable */ }
   }

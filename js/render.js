@@ -73,7 +73,7 @@
       if (filterPri && t.priority !== filterPri) return false;
       if (filterStatus === 'active' && t.completed) return false;
       if (filterStatus === 'completed' && !t.completed) return false;
-      if (todayFilterActive && t.dueDate !== TODAY) return false;
+      if (todayFilterActive && t.dueDate > TODAY) return false;
       if (filterType === 'tasks' && t.isHabit) return false;
       if (filterType === 'habits' && !t.isHabit) return false;
       return true;
@@ -96,7 +96,7 @@
 
     if (filtered.length === 0) {
       const emptyMsg = todayFilterActive
-        ? '<div class="icon">🎉</div><p>No tasks due today — enjoy your day!</p>'
+        ? '<div class="icon">🎉</div><p>No tasks due today or overdue — enjoy your day!</p>'
         : '<div class="icon">📭</div><p>No tasks found. Try adjusting your filters.</p>';
       tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">${emptyMsg}</div></td></tr>`;
     } else {
@@ -195,6 +195,7 @@
     document.getElementById('btn-stats').classList.toggle('active', v === 'stats');
     if (v === 'grid')  renderGrid();
     if (v === 'stats') renderStats();
+    saveState();
   }
 
   // ── Stats ─────────────────────────────────────────────

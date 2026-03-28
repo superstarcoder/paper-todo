@@ -134,7 +134,37 @@
   if (currentTheme === 'dark')  document.documentElement.setAttribute('data-theme', 'dark');
   if (currentTheme === 'earth') { document.documentElement.setAttribute('data-theme', 'earth'); startEarthMode(); }
 
+  // Restore non-DOM UI state before first render
+  const _ui = _saved?.uiConfig;
+  if (_ui) {
+    if (_ui.sortKey)              sortKey            = _ui.sortKey;
+    if (_ui.sortDir)              sortDir            = _ui.sortDir;
+    if (_ui.statsPeriod)          statsPeriod        = _ui.statsPeriod;
+    if (_ui.gridWeekOffset !== undefined) gridWeekOffset = _ui.gridWeekOffset;
+    if (_ui.filterType)           filterType         = _ui.filterType;
+    todayFilterActive = _ui.todayFilter || false;
+  }
+
   rebuildCategorySelects();
+
+  // Restore filter dropdowns and sort icon after options are built
+  if (_ui) {
+    if (_ui.filterCat)    document.getElementById('filter-cat').value      = _ui.filterCat;
+    if (_ui.filterPri)    document.getElementById('filter-priority').value  = _ui.filterPri;
+    if (_ui.filterStatus) document.getElementById('filter-status').value    = _ui.filterStatus;
+    if (todayFilterActive) document.getElementById('btn-today').classList.add('active-today');
+    // Restore sort icon
+    if (_ui.sortKey) {
+      const el = document.getElementById('sort-' + _ui.sortKey);
+      if (el) { el.textContent = sortDir === 1 ? '↑' : '↓'; el.parentElement?.classList.add('sorted'); }
+    }
+    // Restore type filter tab active class
+    ['all','tasks','habits','tracker'].forEach(t => {
+      const el = document.getElementById('tab-' + t);
+      if (el) el.classList.toggle('active', t === filterType);
+    });
+  }
+
   renderTable();
   loadQuote();
 
@@ -145,3 +175,14 @@
   document.getElementById('btn-light').classList.toggle('active', currentTheme === 'light');
   document.getElementById('btn-dark').classList.toggle('active',  currentTheme === 'dark');
   document.getElementById('btn-earth').classList.toggle('active', currentTheme === 'earth');
+
+  // Restore view and type filter (after initial render)
+  if (_ui) {
+    if (filterType === 'tracker') {
+      document.getElementById('task-table').style.display    = 'none';
+      document.getElementById('tracker-panel').style.display = '';
+      qaSetVisible(false);
+      renderTrackers();
+    }
+    if (_ui.view && _ui.view !== 'list') setView(_ui.view);
+  }
