@@ -54,10 +54,16 @@
     }
   }
 
-  // Hide quick-add row when tracker tab is active
-  function qaSetVisible(visible) {
-    const el = document.getElementById('quick-add-tbody');
-    if (el) el.style.display = visible ? '' : 'none';
+  // Choose which inline add row to show based on the active type tab.
+  // Tracker hides both; Habits shows an "Add a habit" button (a plain task
+  // quick-add makes no sense there); everything else shows the task quick-add.
+  function updateQuickAddRows() {
+    const taskRow  = document.getElementById('quick-add-tbody');
+    const habitRow = document.getElementById('quick-add-habit-tbody');
+    const isTracker = filterType === 'tracker';
+    const isHabits  = filterType === 'habits';
+    if (taskRow)  taskRow.style.display  = (isTracker || isHabits) ? 'none' : '';
+    if (habitRow) habitRow.style.display = isHabits ? '' : 'none';
   }
 
   // ── Render ────────────────────────────────────────────
@@ -71,8 +77,12 @@
       if (search && !t.name.toLowerCase().includes(search) && !(t.details||'').toLowerCase().includes(search)) return false;
       if (filterCat && t.category !== filterCat) return false;
       if (filterPri && t.priority !== filterPri) return false;
-      if (filterStatus === 'active' && t.completed) return false;
-      if (filterStatus === 'completed' && !t.completed) return false;
+      // The active/completed status filter is a task lifecycle concept; a habit's
+      // `completed` flag only means "done today", so habits ignore this filter.
+      if (!t.isHabit) {
+        if (filterStatus === 'active' && t.completed) return false;
+        if (filterStatus === 'completed' && !t.completed) return false;
+      }
       if (todayFilterActive && t.dueDate > TODAY) return false;
       if (filterType === 'tasks' && t.isHabit) return false;
       if (filterType === 'habits' && !t.isHabit) return false;
@@ -102,10 +112,12 @@
     } else {
       filtered.forEach((t, idx) => {
         const tr = document.createElement('tr');
-        if (t.completed) tr.classList.add('completed-row');
+        const isHabitDoneToday = t.isHabit && (t.completedDates || []).includes(TODAY);
+        // For habits, `completed` is a stale "done on some past day" flag; the row's
+        // struck-off state must reflect whether it's done *today*, not that flag.
+        if (t.isHabit ? isHabitDoneToday : t.completed) tr.classList.add('completed-row');
         tr.style.animation = `fadeIn 0.18s ease ${idx * 0.03}s both`;
 
-        const isHabitDoneToday = t.isHabit && (t.completedDates || []).includes(TODAY);
         const dueCls = t.completed ? '' : (t.dueDate < TODAY ? 'overdue' : t.dueDate === TODAY ? 'today' : 'upcoming');
         const habitStreak = t.isHabit ? getHabitStreak(t) : 0;
         const dueLabel = t.isHabit
@@ -153,20 +165,16 @@
     const nonHabits = tasks.filter(t => !t.isHabit);
     const total = nonHabits.length;
     const done = nonHabits.filter(t => t.completed).length;
-    const urgent = nonHabits.filter(t => t.priority === 'High' && !t.completed).length;
-    const todayCount = nonHabits.filter(t => t.dueDate === TODAY && !t.completed).length;
-    const pct = total > 0 ? Math.round(done / total * 100) : 0;
 
-    document.getElementById('stat-total').textContent = total;
-    document.getElementById('stat-done').textContent = done;
-    document.getElementById('stat-urgent').textContent = urgent;
-    document.getElementById('stat-today').textContent = todayCount;
+    // Progress bar reflects only tasks due today
+    const dueToday = nonHabits.filter(t => t.dueDate === TODAY);
+    const dueTodayDone = dueToday.filter(t => t.completed).length;
+    const pct = dueToday.length > 0 ? Math.round(dueTodayDone / dueToday.length * 100) : 0;
+
     document.getElementById('pct-label').textContent = pct + '%';
     document.getElementById('progress-fill').style.width = pct + '%';
 
-    const isEmpty = total === 0;
-    document.getElementById('stats-row').style.display = isEmpty ? 'none' : '';
-    document.getElementById('progress-wrap').style.display = isEmpty ? 'none' : '';
+    document.getElementById('progress-wrap').style.display = dueToday.length === 0 ? 'none' : '';
 
     // Dynamic start / end dates from tasks
     const dates = tasks.map(t => t.dueDate || t.startDate).filter(Boolean).sort();
@@ -200,10 +208,55 @@
 
   // ── Stats ─────────────────────────────────────────────
   let statsPeriod = 'day'; // 'day' | 'week' | 'month'
+  let trackerRangeStart = ''; // '' = all time, else YYYY-MM-DD
+  let trackerRangeEnd   = ''; // '' = all time, else YYYY-MM-DD
 
   function setStatsPeriod(p) {
     statsPeriod = p;
     renderStats();
+  }
+
+  function setTrackerRange() {
+    trackerRangeStart = document.getElementById('tracker-range-start')?.value || '';
+    trackerRangeEnd   = document.getElementById('tracker-range-end')?.value   || '';
+    saveState();
+    renderStats();
+  }
+
+  function clearTrackerRange() {
+    trackerRangeStart = '';
+    trackerRangeEnd   = '';
+    saveState();
+    renderStats();
+  }
+
+  // ── Chart point tooltip ───────────────────────────────
+  function showChartTip(evt, el) {
+    let tip = document.getElementById('chart-tip');
+    if (!tip) {
+      tip = document.createElement('div');
+      tip.id = 'chart-tip';
+      tip.className = 'chart-tip';
+      tip.innerHTML = '<span class="chart-tip-val"></span><span class="chart-tip-date"></span>';
+      document.body.appendChild(tip);
+    }
+    const unit = el.dataset.unit;
+    tip.querySelector('.chart-tip-val').textContent = el.dataset.value + (unit ? ' ' + unit : '');
+    tip.querySelector('.chart-tip-date').textContent = el.dataset.date;
+    tip.classList.add('show');
+    moveChartTip(evt);
+  }
+
+  function moveChartTip(evt) {
+    const tip = document.getElementById('chart-tip');
+    if (!tip) return;
+    tip.style.left = evt.clientX + 'px';
+    tip.style.top  = evt.clientY + 'px';
+  }
+
+  function hideChartTip() {
+    const tip = document.getElementById('chart-tip');
+    if (tip) tip.classList.remove('show');
   }
 
   function renderStats() {
@@ -411,76 +464,68 @@
     const habitSectionsHtml = habits.map(h => {
       const doneSet = new Set(h.completedDates || []);
       const days = h.habitDays && h.habitDays.length > 0 ? h.habitDays : [0,1,2,3,4,5,6];
-      const streak = getHabitStreak(h);
-
-      // Count scheduled occurrences and completions in last 30 days
-      let scheduled = 0, completed30 = 0;
-      for (let i = 0; i < 30; i++) {
-        const d = new Date(TODAY + 'T12:00:00');
-        d.setDate(d.getDate() - i);
-        if (days.includes(d.getDay())) {
-          scheduled++;
-          if (doneSet.has(toYMD(d))) completed30++;
-        }
-      }
-      const rate30 = scheduled > 0 ? Math.round(completed30 / scheduled * 100) : 0;
       const totalDone = doneSet.size;
 
-      // Build 8-week calendar heatmap (Sun-Sat columns, 8 weeks back)
-      // Find the Sunday 8 weeks ago
+      // Build calendar heatmap. Sun-Sat columns, trimmed to start at the week of
+      // the first completion so weeks before the habit began aren't shown (capped
+      // at the last 8 weeks).
       const today = new Date(TODAY + 'T12:00:00');
       const todayDow = today.getDay();
-      const startSun = new Date(today);
-      startSun.setDate(today.getDate() - todayDow - 7 * 7); // 8 weeks back, start of week
+      const thisSun = new Date(today);
+      thisSun.setDate(today.getDate() - todayDow); // Sunday of the current week
 
-      let calHtml = '<div class="habit-cal">';
-      // Day labels column
-      calHtml += '<div class="habit-cal-week" style="margin-right:4px;">';
-      ['S','M','T','W','T','F','S'].forEach(d => {
-        calHtml += `<div style="width:14px;height:14px;font-size:9px;color:var(--text-faint);display:flex;align-items:center;justify-content:center;">${d}</div>`;
-      });
-      calHtml += '</div>';
+      const firstDone = totalDone > 0 ? [...doneSet].sort()[0] : null;
 
-      for (let w = 0; w < 8; w++) {
-        calHtml += '<div class="habit-cal-week">';
-        for (let dow = 0; dow < 7; dow++) {
-          const d = new Date(startSun);
-          d.setDate(startSun.getDate() + w * 7 + dow);
-          const ymd = toYMD(d);
-          const isFuture = ymd > TODAY;
-          const isScheduled = days.includes(d.getDay());
-          let cls = 'habit-cal-day';
-          if (isFuture) cls += ' future';
-          else if (!isScheduled) cls += ' skipped';
-          else if (doneSet.has(ymd)) cls += ' done';
-          const label = `${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]} ${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}${doneSet.has(ymd) ? ' ✓' : ''}`;
-          calHtml += `<div class="${cls}" title="${label}"></div>`;
+      let calHtml, calLabel = null;
+      if (!firstDone) {
+        calHtml = '<div class="habit-cal-empty">No completions yet</div>';
+      } else {
+        // Sunday of the week containing the first completion
+        const firstDoneDate = new Date(firstDone + 'T12:00:00');
+        const firstSun = new Date(firstDoneDate);
+        firstSun.setDate(firstDoneDate.getDate() - firstDoneDate.getDay());
+
+        // Cap the window at the last 8 weeks
+        const earliestSun = new Date(thisSun);
+        earliestSun.setDate(thisSun.getDate() - 7 * 7);
+        const startSun = firstSun > earliestSun ? firstSun : earliestSun;
+
+        const numWeeks = Math.round((thisSun - startSun) / (7 * 24 * 3600 * 1000)) + 1;
+        calLabel = `Last ${numWeeks} week${numWeeks === 1 ? '' : 's'}`;
+
+        calHtml = '<div class="habit-cal">';
+        // Day labels column
+        calHtml += '<div class="habit-cal-week" style="margin-right:4px;">';
+        ['S','M','T','W','T','F','S'].forEach(d => {
+          calHtml += `<div class="habit-cal-label">${d}</div>`;
+        });
+        calHtml += '</div>';
+
+        for (let w = 0; w < numWeeks; w++) {
+          calHtml += '<div class="habit-cal-week">';
+          for (let dow = 0; dow < 7; dow++) {
+            const d = new Date(startSun);
+            d.setDate(startSun.getDate() + w * 7 + dow);
+            const ymd = toYMD(d);
+            const isFuture = ymd > TODAY;
+            const isScheduled = days.includes(d.getDay());
+            let cls = 'habit-cal-day';
+            if (isFuture) cls += ' future';
+            else if (!isScheduled) cls += ' skipped';
+            else if (doneSet.has(ymd)) cls += ' done';
+            const label = `${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]} ${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}${doneSet.has(ymd) ? ' ✓' : ''}`;
+            calHtml += `<div class="${cls}" title="${label}"></div>`;
+          }
+          calHtml += '</div>';
         }
         calHtml += '</div>';
       }
-      calHtml += '</div>';
 
       return `<div class="chart-card" style="margin-top:0;">
         <div class="chart-card-title">${escHtml(h.name)}</div>
         <div class="chart-card-sub">${habitDaysLabel(h.habitDays)} · ${h.category ? escHtml(h.category) : 'No category'}</div>
-        <div style="display:flex;gap:12px;margin:10px 0 14px;flex-wrap:wrap;">
-          <div class="stats-sum-card" style="flex:1;min-width:80px;padding:10px 14px;">
-            <div class="sum-num" style="font-size:20px;">${streak}</div>
-            <div class="sum-label">🔥 Streak</div>
-            <div class="sum-sub">days in a row</div>
-          </div>
-          <div class="stats-sum-card" style="flex:1;min-width:80px;padding:10px 14px;">
-            <div class="sum-num" style="font-size:20px;">${rate30}%</div>
-            <div class="sum-label">30-day rate</div>
-            <div class="sum-sub">${completed30} of ${scheduled} days</div>
-          </div>
-          <div class="stats-sum-card" style="flex:1;min-width:80px;padding:10px 14px;">
-            <div class="sum-num" style="font-size:20px;">${totalDone}</div>
-            <div class="sum-label">Total done</div>
-            <div class="sum-sub">all time</div>
-          </div>
-        </div>
-        <div style="font-size:11px;color:var(--text-faint);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Last 8 weeks</div>
+        <div style="margin-top:14px;"></div>
+        ${calLabel ? `<div style="font-size:11px;color:var(--text-faint);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">${calLabel}</div>` : ''}
         ${calHtml}
         <div style="display:flex;gap:10px;margin-top:8px;font-size:11px;color:var(--text-faint);align-items:center;">
           <div style="display:flex;align-items:center;gap:4px;"><div style="width:10px;height:10px;border-radius:2px;background:var(--accent);"></div> Done</div>
@@ -492,14 +537,30 @@
 
     // ── Build tracker sections ──────────────────────────
     const trackerSectionsHtml = trackers.map(tr => {
-      const sorted = [...tr.entries].sort((a,b) => a.date.localeCompare(b.date));
+      const inRange = tr.entries.filter(e =>
+        (!trackerRangeStart || e.date >= trackerRangeStart) &&
+        (!trackerRangeEnd   || e.date <= trackerRangeEnd));
+      const sorted = [...inRange].sort((a,b) => a.date.localeCompare(b.date));
       if (sorted.length === 0) {
+        const rangeActive = trackerRangeStart || trackerRangeEnd;
+        const sub = tr.entries.length > 0 && rangeActive ? 'No entries in this date range' : 'No entries yet';
+        const msg = tr.entries.length > 0 && rangeActive
+          ? 'Try widening the date range above.'
+          : 'Start logging data in the Tracker tab to see a chart here.';
         return `<div class="chart-card" style="margin-top:0;">
           <div class="chart-card-title">${escHtml(tr.label)}${tr.unit ? ` <span style="font-size:12px;font-weight:400;color:var(--text-faint)">${escHtml(tr.unit)}</span>` : ''}</div>
-          <div class="chart-card-sub">No entries yet</div>
-          <div style="color:var(--text-faint);font-size:13px;padding:16px 0;font-style:italic;">Start logging data in the Tracker tab to see a chart here.</div>
+          <div class="chart-card-sub">${sub}</div>
+          <div style="color:var(--text-faint);font-size:13px;padding:16px 0;font-style:italic;">${msg}</div>
         </div>`;
       }
+
+      // Time axis: position points by their actual date, not by index, so gaps
+      // between entries are reflected proportionally on the x-axis.
+      const times = sorted.map(e => new Date(e.date + 'T12:00:00').getTime());
+      const tMin = times[0];
+      const tMax = times[times.length - 1];
+      const tRange = (tMax - tMin) || 1;
+      const daysX = times.map(t => (t - tMin) / 86400000); // days from first entry
 
       // Summary stats
       const vals = sorted.map(e => parseFloat(e.value)).filter(v => !isNaN(v));
@@ -512,17 +573,16 @@
       const changeSign = totalChange > 0 ? '+' : '';
       const u = escHtml(tr.unit || '');
 
-      // R² of linear regression (time as x-index, value as y)
+      // R² of linear regression (elapsed days as x, value as y)
       let r2 = null;
       if (vals.length >= 3) {
         const n = vals.length;
-        const xs = vals.map((_, i) => i);
-        const xMean = (n - 1) / 2;
+        const xMean = daysX.reduce((a, b) => a + b, 0) / n;
         const yMean = vals.reduce((a, b) => a + b, 0) / n;
-        const ssxx = xs.reduce((s, x) => s + (x - xMean) ** 2, 0);
+        const ssxx = daysX.reduce((s, x) => s + (x - xMean) ** 2, 0);
         const ssyy = vals.reduce((s, y) => s + (y - yMean) ** 2, 0);
-        const ssxy = xs.reduce((s, x, i) => s + (x - xMean) * (vals[i] - yMean), 0);
-        r2 = ssyy === 0 ? 1 : Math.round((ssxy * ssxy / (ssxx * ssyy)) * 1000) / 1000;
+        const ssxy = daysX.reduce((s, x, i) => s + (x - xMean) * (vals[i] - yMean), 0);
+        r2 = (ssxx === 0 || ssyy === 0) ? 1 : Math.round((ssxy * ssxy / (ssxx * ssyy)) * 1000) / 1000;
       }
 
       // SVG line chart
@@ -532,9 +592,10 @@
       const minVal = Math.min(...vals);
       const maxVal = Math.max(...vals);
       const valRange = maxVal - minVal || 1;
+      const xForTime = t => pad.l + ((t - tMin) / tRange) * chartW;
 
       const pts = sorted.map((e, i) => {
-        const x = pad.l + (i / Math.max(sorted.length - 1, 1)) * chartW;
+        const x = xForTime(times[i]);
         const y = pad.t + chartH - ((parseFloat(e.value) - minVal) / valRange) * chartH;
         return { x, y, e };
       });
@@ -552,35 +613,41 @@
         return `<text x="${pad.l - 6}" y="${y + 4}" font-size="9" fill="var(--text-faint)" text-anchor="end">${Math.round(v * 10) / 10}</text>`;
       }).join('');
 
-      // X axis date labels (first, middle, last)
-      const xLabels = [0, Math.floor((sorted.length-1)/2), sorted.length-1]
-        .filter((v,i,a) => a.indexOf(v) === i && sorted[v])
-        .map(i => {
-          const x = pad.l + (i / Math.max(sorted.length - 1, 1)) * chartW;
-          const d = new Date(sorted[i].date + 'T12:00:00');
-          const lbl = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-          return `<text x="${x.toFixed(1)}" y="${svgH - 6}" font-size="9" fill="var(--text-faint)" text-anchor="middle">${lbl}</text>`;
-        }).join('');
+      // X axis date labels at evenly spaced positions along the time axis, so
+      // they stay visually spread out (and never overlap) no matter how the
+      // entries cluster in time. Date is derived from the axis position.
+      const xTickFracs = sorted.length === 1 ? [0] : [0, 0.5, 1];
+      const xLabels = xTickFracs.map(frac => {
+        const x = pad.l + frac * chartW;
+        const d = new Date(tMin + frac * tRange);
+        const lbl = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const anchor = frac === 0 ? 'start' : frac === 1 ? 'end' : 'middle';
+        return `<text x="${x.toFixed(1)}" y="${svgH - 6}" font-size="9" fill="var(--text-faint)" text-anchor="${anchor}">${lbl}</text>`;
+      }).join('');
 
-      // Dots for each point
-      const dots = pts.map(p =>
-        `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="var(--accent)" opacity="0.85"/>`
-      ).join('');
+      // Dots for each point — hover shows a tooltip with the value and date
+      const dots = pts.map(p => {
+        const dLabel = new Date(p.e.date + 'T12:00:00')
+          .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        return `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="var(--accent)" opacity="0.85"
+          class="chart-dot" data-date="${escHtml(dLabel)}" data-value="${escHtml(String(p.e.value))}" data-unit="${u}"
+          onmouseenter="showChartTip(event, this)" onmousemove="moveChartTip(event)" onmouseleave="hideChartTip()"/>`;
+      }).join('');
 
       // Linear regression line for chart
       let trendLine = '';
       if (vals.length >= 3) {
         const n = vals.length;
-        const xMean = (n - 1) / 2;
+        const xMean = daysX.reduce((a, b) => a + b, 0) / n;
         const yMean = vals.reduce((a, b) => a + b, 0) / n;
-        const ssxx = vals.reduce((s, _, i) => s + (i - xMean) ** 2, 0);
-        const ssxy = vals.reduce((s, y, i) => s + (i - xMean) * (y - yMean), 0);
-        const slope = ssxy / ssxx;
+        const ssxx = daysX.reduce((s, x) => s + (x - xMean) ** 2, 0);
+        const ssxy = daysX.reduce((s, x, i) => s + (x - xMean) * (vals[i] - yMean), 0);
+        const slope = ssxx === 0 ? 0 : ssxy / ssxx;
         const intercept = yMean - slope * xMean;
-        const yAtStart = intercept;
-        const yAtEnd = slope * (n - 1) + intercept;
+        const yAtStart = intercept + slope * daysX[0];
+        const yAtEnd = intercept + slope * daysX[n - 1];
         const toChartY = v => pad.t + chartH - ((v - minVal) / valRange) * chartH;
-        const x1 = pad.l, x2 = pad.l + chartW;
+        const x1 = xForTime(times[0]), x2 = xForTime(times[n - 1]);
         const y1 = toChartY(yAtStart), y2 = toChartY(yAtEnd);
         trendLine = `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"
           stroke="var(--text-faint)" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.6"/>`;
@@ -634,7 +701,7 @@
       </div>`;
     }).join('');
 
-    container.innerHTML = `
+    const tasksProgressHtml = `
       <div class="stats-header-row">
         <div>
           <div class="stats-title">Your Tasks Progress</div>
@@ -690,25 +757,41 @@
           <div class="chart-card-sub">Your latest finished tasks</div>
           ${recentHtml}
         </div>
-      </div>
+      </div>`;
 
+    const sectionSep = 'margin-top:24px;border-top:1px solid var(--border);padding-top:24px;';
+
+    container.innerHTML = `
       ${habits.length > 0 ? `
-        <div style="margin-top:24px;border-top:1px solid var(--border);padding-top:24px;display:flex;flex-direction:column;gap:20px;">
+        <div style="display:flex;flex-direction:column;gap:20px;">
           <div>
             <div class="stats-title" style="font-size:22px;">Your Habits</div>
             <div class="stats-subtitle">Daily completion history</div>
           </div>
-          ${habitSectionsHtml}
+          <div class="habit-grid">${habitSectionsHtml}</div>
         </div>` : ''}
 
       ${trackers.length > 0 ? `
-        <div style="margin-top:24px;border-top:1px solid var(--border);padding-top:24px;display:flex;flex-direction:column;gap:20px;">
-          <div>
-            <div class="stats-title" style="font-size:22px;">Your Trackers</div>
-            <div class="stats-subtitle">Quantitative data over time</div>
+        <div style="${habits.length > 0 ? sectionSep : ''}display:flex;flex-direction:column;gap:20px;">
+          <div class="stats-header-row">
+            <div>
+              <div class="stats-title" style="font-size:22px;">Your Trackers</div>
+              <div class="stats-subtitle">Quantitative data over time</div>
+            </div>
+            <div class="tracker-range-bar">
+              <span class="tracker-range-label">Range</span>
+              <input type="date" id="tracker-range-start" value="${trackerRangeStart}" max="${trackerRangeEnd || ''}" onchange="setTrackerRange()" title="Start date">
+              <span class="tracker-range-sep">to</span>
+              <input type="date" id="tracker-range-end" value="${trackerRangeEnd}" min="${trackerRangeStart || ''}" onchange="setTrackerRange()" title="End date">
+              ${(trackerRangeStart || trackerRangeEnd) ? `<button class="period-btn tracker-range-clear" onclick="clearTrackerRange()">All time</button>` : ''}
+            </div>
           </div>
           ${trackerSectionsHtml}
         </div>` : ''}
+
+      <div style="${(trackers.length > 0 || habits.length > 0) ? sectionSep : ''}">
+        ${tasksProgressHtml}
+      </div>
     `;
 
     // Animate bars in

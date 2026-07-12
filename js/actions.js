@@ -295,6 +295,13 @@
 
   function editTask(id) { openModal(id); }
 
+  // Opens the New Task modal with Repeating Habit pre-enabled (used by the
+  // "Add a habit" button shown under the Habits tab).
+  function openHabitModal() {
+    openModal();
+    if (!_habitMode) toggleHabitMode();
+  }
+
   function closeModal() {
     document.getElementById('modal-bg').classList.remove('open');
     editingId = null;

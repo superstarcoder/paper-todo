@@ -1521,6 +1521,77 @@ tbody tr:hover .row-actions { opacity: 1; }
 .period-btn:hover { background: var(--surface2); color: var(--text); }
 .period-btn.active { background: var(--accent); color: white; }
 
+.tracker-range-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.tracker-range-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-faint);
+}
+.tracker-range-sep { font-size: 12px; color: var(--text-muted); }
+.tracker-range-bar input[type="date"] {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+  box-shadow: var(--shadow);
+}
+.tracker-range-bar input[type="date"]:focus { border-color: var(--accent-mid); box-shadow: 0 0 0 2px var(--accent-light); }
+.period-btn.tracker-range-clear {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  box-shadow: var(--shadow);
+  color: var(--text-muted);
+}
+.period-btn.tracker-range-clear:hover { background: var(--surface2); color: var(--text); }
+
+.chart-dot { cursor: pointer; transition: r 0.1s ease; }
+.chart-dot:hover { r: 5; opacity: 1; }
+
+.chart-tip {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: none;
+  transform: translate(-50%, calc(-100% - 12px));
+  background: var(--text);
+  color: var(--surface);
+  padding: 6px 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  line-height: 1.35;
+  white-space: nowrap;
+  text-align: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s ease;
+}
+.chart-tip.show { opacity: 1; visibility: visible; }
+.chart-tip::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  transform: translateX(-50%);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid var(--text);
+}
+.chart-tip-val { display: block; font-weight: 600; }
+.chart-tip-date { display: block; font-size: 11px; opacity: 0.7; }
+
 /* Summary cards */
 .stats-summary-row {
   display: grid;
@@ -2173,6 +2244,22 @@ body.col-resizing * {
 }
 
 /* Habit calendar heatmap in stats */
+.habit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.habit-grid > .chart-card {
+  margin-top: 0;
+}
+
+@media (max-width: 640px) {
+  .habit-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .habit-cal {
   display: flex;
   gap: 3px;
@@ -2188,15 +2275,31 @@ body.col-resizing * {
 }
 
 .habit-cal-day {
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
   background: var(--surface2);
   border: 1px solid var(--border);
   flex-shrink: 0;
   transition: transform 0.1s;
   cursor: default;
   position: relative;
+}
+
+.habit-cal-label {
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+  color: var(--text-faint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.habit-cal-empty {
+  font-size: 12px;
+  color: var(--text-faint);
+  padding: 8px 0;
 }
 
 .habit-cal-day.done { background: var(--accent); border-color: var(--accent-mid); }
@@ -2282,6 +2385,23 @@ body.col-resizing * {
   opacity: 1;
   pointer-events: auto;
 }
+#quick-add-habit-row { cursor: pointer; }
+#quick-add-habit-row td {
+  padding: 5px 8px;
+  border-top: 1px dashed var(--border);
+  background: var(--surface);
+  transition: background 0.15s;
+}
+#quick-add-habit-row:hover td { background: var(--surface2); }
+.qa-habit-btn {
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-faint);
+  padding: 4px 6px;
+  user-select: none;
+  transition: color 0.12s;
+}
+#quick-add-habit-row:hover .qa-habit-btn { color: var(--text); }
 
 /* ── Earth time widget ───────────────────────────────── */
 #earth-time-widget {

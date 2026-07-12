@@ -140,6 +140,8 @@
     if (_ui.sortKey)              sortKey            = _ui.sortKey;
     if (_ui.sortDir)              sortDir            = _ui.sortDir;
     if (_ui.statsPeriod)          statsPeriod        = _ui.statsPeriod;
+    if (_ui.trackerRangeStart)    trackerRangeStart  = _ui.trackerRangeStart;
+    if (_ui.trackerRangeEnd)      trackerRangeEnd    = _ui.trackerRangeEnd;
     if (_ui.gridWeekOffset !== undefined) gridWeekOffset = _ui.gridWeekOffset;
     if (_ui.filterType)           filterType         = _ui.filterType;
     todayFilterActive = _ui.todayFilter || false;
@@ -181,8 +183,8 @@
     if (filterType === 'tracker') {
       document.getElementById('task-table').style.display    = 'none';
       document.getElementById('tracker-panel').style.display = '';
-      qaSetVisible(false);
       renderTrackers();
     }
+    updateQuickAddRows();
     if (_ui.view && _ui.view !== 'list') setView(_ui.view);
   }

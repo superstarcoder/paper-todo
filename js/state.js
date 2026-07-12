@@ -63,6 +63,8 @@
           sortKey,
           sortDir,
           statsPeriod,
+          trackerRangeStart,
+          trackerRangeEnd,
           gridWeekOffset,
           filterCat:    document.getElementById('filter-cat')?.value    || '',
           filterPri:    document.getElementById('filter-priority')?.value || '',
@@ -109,7 +111,7 @@
     const isTracker = type === 'tracker';
     document.getElementById('task-table').style.display = isTracker ? 'none' : '';
     document.getElementById('tracker-panel').style.display = isTracker ? '' : 'none';
-    qaSetVisible(!isTracker);
+    updateQuickAddRows();
     if (isTracker) renderTrackers();
     else renderTable();
   }

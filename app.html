@@ -50,30 +50,10 @@
     </button>
   </div>
 
-  <!-- Stats -->
-  <div class="stats-row" id="stats-row">
-    <div class="stat-card total">
-      <div class="stat-number" id="stat-total">—</div>
-      <div class="stat-label">Total Tasks</div>
-    </div>
-    <div class="stat-card done-stat">
-      <div class="stat-number" id="stat-done">—</div>
-      <div class="stat-label">Completed</div>
-    </div>
-    <div class="stat-card urgent">
-      <div class="stat-number" id="stat-urgent">—</div>
-      <div class="stat-label">High Priority</div>
-    </div>
-    <div class="stat-card today-stat">
-      <div class="stat-number" id="stat-today">—</div>
-      <div class="stat-label">Due Today</div>
-    </div>
-  </div>
-
   <!-- Progress -->
   <div class="progress-wrap" id="progress-wrap">
     <div class="progress-header">
-      <span class="progress-title">Overall Progress</span>
+      <span class="progress-title">Today's Progress</span>
       <span class="progress-pct" id="pct-label">0%</span>
     </div>
     <div class="progress-bar">
@@ -182,6 +162,16 @@
           </td>
           <td class="qa-hide-unfocused">
             <button style="font-size:11px;padding:4px 10px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;white-space:nowrap;" onclick="qaCommit()">Add ↵</button>
+          </td>
+        </tr>
+      </tbody>
+      <tbody id="quick-add-habit-tbody" style="display:none;">
+        <tr id="quick-add-habit-row" onclick="openHabitModal()">
+          <td style="padding-left:12px; width:36px;">
+            <div style="width:18px;height:18px;border-radius:50%;border:1.5px dashed var(--border);opacity:0.5;"></div>
+          </td>
+          <td colspan="6">
+            <span class="qa-habit-btn">＋ Add a habit</span>
           </td>
         </tr>
       </tbody>
