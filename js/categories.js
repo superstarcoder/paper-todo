@@ -53,22 +53,64 @@
     const usedCats = new Set(tasks.map(t => t.category).filter(Boolean));
     const container = document.getElementById('cat-list');
     container.innerHTML = '';
-    categories.forEach(cat => {
+
+    const activeCats   = categories.filter(c => !archivedCategories.includes(c));
+    const archivedCats = categories.filter(c =>  archivedCategories.includes(c));
+
+    const makeRow = (cat, isArchived) => {
       const inUse = usedCats.has(cat);
+      const count = tasks.filter(t => t.category === cat).length;
       const row = document.createElement('div');
       row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);animation:fadeIn 0.15s ease both;';
+      const archiveBtn = isArchived
+        ? `<button onclick="unarchiveCategory('${escHtml(cat)}')"
+             style="padding:3px 8px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:11px;font-family:'DM Sans',sans-serif;">↩ Unarchive</button>`
+        : `<button onclick="archiveCategory('${escHtml(cat)}')"
+             style="padding:3px 8px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:var(--text-faint);cursor:pointer;font-size:11px;font-family:'DM Sans',sans-serif;">📥 Archive</button>`;
       row.innerHTML = `
-        <span class="cat-pill cat-pill-btn" style="${catStyle(cat)};flex:1;" onclick="openCatColorPicker('${escHtml(cat)}', this)" title="Click to change color">${escHtml(cat)}</span>
-        ${inUse ? `<span style="font-size:11px;color:var(--text-faint);">${tasks.filter(t=>t.category===cat).length} task${tasks.filter(t=>t.category===cat).length!==1?'s':''}</span>` : ''}
+        <span class="cat-pill cat-pill-btn" style="${catStyle(cat)};flex:1;${isArchived ? 'opacity:0.6;' : ''}" onclick="openCatColorPicker('${escHtml(cat)}', this)" title="Click to change color">${escHtml(cat)}</span>
+        ${inUse ? `<span style="font-size:11px;color:var(--text-faint);">${count} task${count!==1?'s':''}</span>` : ''}
+        ${archiveBtn}
         <button onclick="deleteCategory('${escHtml(cat)}')"
           style="padding:3px 8px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:${inUse ? 'var(--text-faint)' : 'var(--danger)'};cursor:${inUse ? 'not-allowed' : 'pointer'};font-size:11px;font-family:'DM Sans',sans-serif;opacity:${inUse ? '0.5' : '1'};"
           ${inUse ? 'disabled title="Remove tasks from this category first"' : ''}>✕ Remove</button>
       `;
-      container.appendChild(row);
-    });
+      return row;
+    };
+
+    activeCats.forEach(cat => container.appendChild(makeRow(cat, false)));
+
+    if (archivedCats.length > 0) {
+      const heading = document.createElement('div');
+      heading.style.cssText = 'font-size:11px;color:var(--text-faint);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:14px 0 2px;';
+      heading.textContent = 'Archived';
+      container.appendChild(heading);
+      archivedCats.forEach(cat => container.appendChild(makeRow(cat, true)));
+    }
+
     if (categories.length === 0) {
       container.innerHTML = '<p style="font-size:13px;color:var(--text-faint);text-align:center;padding:12px 0;">No categories yet.</p>';
     }
+  }
+
+  function archiveCategory(cat) {
+    if (!archivedCategories.includes(cat)) archivedCategories.push(cat);
+    closeActivePicker();
+    rebuildCategorySelects();
+    renderCatList();
+    renderTable();
+    if (currentView === 'grid') renderGrid();
+    saveState();
+  }
+
+  function unarchiveCategory(cat) {
+    archivedCategories = archivedCategories.filter(c => c !== cat);
+    closeActivePicker();
+    rebuildCategorySelects();
+    renderCatList();
+    renderTable();
+    if (currentView === 'grid') renderGrid();
+    saveState();
   }
 
   let _activeCatPicker = null;
@@ -177,6 +219,7 @@
     const inUse = tasks.some(t => t.category === cat);
     if (inUse) return;
     categories = categories.filter(c => c !== cat);
+    archivedCategories = archivedCategories.filter(c => c !== cat);
     rebuildCategorySelects();
     renderCatList();
     renderTable();

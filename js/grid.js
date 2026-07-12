@@ -49,8 +49,11 @@
     // Colgroup — use stored widths if available
     const DEFAULT_CAT_WIDTH = 150;
     const DAY_COL_WIDTH = 110;
+    // Grid columns exclude archived categories (existing tasks keep their category).
+    const cols = categories.filter(c => !archivedCategories.includes(c));
+
     html += `<colgroup><col class="col-day" style="width:${DAY_COL_WIDTH}px;">`;
-    categories.forEach(c => {
+    cols.forEach(c => {
       const w = colWidths[c] || DEFAULT_CAT_WIDTH;
       html += `<col class="col-cat" data-cat="${escHtml(c)}" style="width:${w}px;">`;
     });
@@ -59,8 +62,8 @@
     // Header row — add resize handle to each category header
     html += `<thead><tr>`;
     html += `<th class="grid-col-header" style="width:${DAY_COL_WIDTH}px;">Day</th>`;
-    categories.forEach((c, i) => {
-      const isLast = i === categories.length - 1;
+    cols.forEach((c, i) => {
+      const isLast = i === cols.length - 1;
       html += `<th class="grid-col-header" data-cat="${escHtml(c)}" style="width:${colWidths[c] || DEFAULT_CAT_WIDTH}px;">${escHtml(c)}${!isLast ? `<div class="col-resize-handle" data-cat="${escHtml(c)}"></div>` : ''}</th>`;
     });
     html += `</tr></thead><tbody>`;
@@ -83,16 +86,16 @@
       </td>`;
 
       // Category columns
-      categories.forEach((cat, ci) => {
+      cols.forEach((cat, ci) => {
         // Find tasks due on this date assigned to this column
         const cellTasks = tasks.filter(t => {
           const col = taskToGridCol(t);
-          return !t.isHabit && t.dueDate === ymd && col === cat;
+          return !t.isHabit && !t.backlog && t.dueDate === ymd && col === cat;
         });
 
         const rangeTasks = tasks.filter(t => {
           const col = taskToGridCol(t);
-          return !t.isHabit && col === cat && t.startDate && t.startDate < ymd && t.dueDate > ymd;
+          return !t.isHabit && !t.backlog && col === cat && t.startDate && t.startDate < ymd && t.dueDate > ymd;
         });
 
         html += `<td class="grid-cell"

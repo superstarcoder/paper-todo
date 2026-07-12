@@ -161,7 +161,7 @@
       if (el) { el.textContent = sortDir === 1 ? '↑' : '↓'; el.parentElement?.classList.add('sorted'); }
     }
     // Restore type filter tab active class
-    ['all','tasks','habits','tracker'].forEach(t => {
+    ['all','tasks','habits','tracker','backlog'].forEach(t => {
       const el = document.getElementById('tab-' + t);
       if (el) el.classList.toggle('active', t === filterType);
     });

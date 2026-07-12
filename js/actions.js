@@ -265,7 +265,18 @@
     document.getElementById('modal-title').textContent = id ? 'Edit Task' : 'New Task';
     document.getElementById('f-name').value = t?.name || '';
     document.getElementById('f-details').value = t?.details || '';
-    document.getElementById('f-cat').value = t?.category || '';
+    // Archived categories are hidden from the picker, but if the edited task already
+    // uses one, inject it as an option so its assignment is preserved on save.
+    const catSel = document.getElementById('f-cat');
+    catSel.querySelectorAll('option[data-archived]').forEach(o => o.remove());
+    if (t?.category && archivedCategories.includes(t.category)) {
+      const o = document.createElement('option');
+      o.value = t.category;
+      o.textContent = t.category + ' (archived)';
+      o.dataset.archived = '1';
+      catSel.appendChild(o);
+    }
+    catSel.value = t?.category || '';
     document.getElementById('f-priority').value = t?.priority || 'Medium';
     document.getElementById('f-start').value = t?.startDate || TODAY;
     document.getElementById('f-due').value = t?.dueDate || TODAY;
@@ -277,6 +288,10 @@
     toggleWrap.classList.toggle('on', _habitMode);
     document.getElementById('habit-days-wrap').style.display = _habitMode ? '' : 'none';
     document.getElementById('f-due-group').style.display = _habitMode ? 'none' : '';
+
+    // Backlog checkbox (mutually exclusive with habits)
+    document.getElementById('f-backlog').checked = t?.backlog || false;
+    document.getElementById('f-backlog-group').style.display = _habitMode ? 'none' : '';
     document.querySelectorAll('.day-btn').forEach(btn => {
       btn.classList.toggle('selected', _selectedDays.includes(parseInt(btn.dataset.day)));
     });
@@ -324,6 +339,7 @@
       dueDate: _habitMode ? '' : document.getElementById('f-due').value,
       isHabit: _habitMode,
       habitDays: _habitMode ? [..._selectedDays] : [],
+      backlog: _habitMode ? false : document.getElementById('f-backlog').checked,
     };
 
     if (editingId) {

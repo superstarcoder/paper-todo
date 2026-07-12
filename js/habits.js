@@ -8,6 +8,9 @@
     wrap.classList.toggle('on', _habitMode);
     document.getElementById('habit-days-wrap').style.display = _habitMode ? '' : 'none';
     document.getElementById('f-due-group').style.display = _habitMode ? 'none' : '';
+    // Backlog and habits are mutually exclusive
+    document.getElementById('f-backlog-group').style.display = _habitMode ? 'none' : '';
+    if (_habitMode) document.getElementById('f-backlog').checked = false;
   }
 
   function toggleDay(day) {

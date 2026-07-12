@@ -55,28 +55,31 @@
     });
     if (categories.includes(prevFilter)) filterSel.value = prevFilter;
 
+    // Assignable categories exclude archived ones (still filterable above).
+    const assignable = categories.filter(c => !archivedCategories.includes(c));
+
     // Modal dropdown
     const modalSel = document.getElementById('f-cat');
     const prevModal = modalSel.value;
     modalSel.innerHTML = '<option value="">—</option>';
-    categories.forEach(c => {
+    assignable.forEach(c => {
       const o = document.createElement('option');
       o.value = c; o.textContent = c;
       modalSel.appendChild(o);
     });
-    if (categories.includes(prevModal)) modalSel.value = prevModal;
+    if (assignable.includes(prevModal)) modalSel.value = prevModal;
 
     // Quick-add row dropdown
     const qaSel = document.getElementById('qa-category');
     if (qaSel) {
       const prevQa = qaSel.value;
       qaSel.innerHTML = '<option value="">— Category</option>';
-      categories.forEach(c => {
+      assignable.forEach(c => {
         const o = document.createElement('option');
         o.value = c; o.textContent = c;
         qaSel.appendChild(o);
       });
-      if (categories.includes(prevQa)) qaSel.value = prevQa;
+      if (assignable.includes(prevQa)) qaSel.value = prevQa;
     }
   }
 

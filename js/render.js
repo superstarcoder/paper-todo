@@ -62,12 +62,30 @@
     const habitRow = document.getElementById('quick-add-habit-tbody');
     const isTracker = filterType === 'tracker';
     const isHabits  = filterType === 'habits';
-    if (taskRow)  taskRow.style.display  = (isTracker || isHabits) ? 'none' : '';
+    // Backlog hides the quick-add row: a quick-added task would immediately vanish
+    // from the view since it isn't flagged as backlog.
+    const isBacklog = filterType === 'backlog';
+    if (taskRow)  taskRow.style.display  = (isTracker || isHabits || isBacklog) ? 'none' : '';
     if (habitRow) habitRow.style.display = isHabits ? '' : 'none';
+  }
+
+  // The Backlog tab only exists while something is parked there. Returns true if
+  // it had to switch away from an now-empty backlog view (caller should stop).
+  function updateBacklogTab() {
+    const hasBacklog = tasks.some(t => t.backlog);
+    const tab = document.getElementById('tab-backlog');
+    if (tab) tab.style.display = hasBacklog ? '' : 'none';
+    if (!hasBacklog && filterType === 'backlog') {
+      setTypeFilter('all'); // re-renders
+      return true;
+    }
+    return false;
   }
 
   // ── Render ────────────────────────────────────────────
   function renderTable() {
+    if (updateBacklogTab()) return;
+
     const search = document.getElementById('search').value.toLowerCase();
     const filterCat = document.getElementById('filter-cat').value;
     const filterPri = document.getElementById('filter-priority').value;
@@ -84,6 +102,9 @@
         if (filterStatus === 'completed' && !t.completed) return false;
       }
       if (todayFilterActive && t.dueDate > TODAY) return false;
+      // Backlog tasks live only under the Backlog tab; every other tab hides them.
+      if (filterType === 'backlog') { if (!t.backlog) return false; }
+      else if (t.backlog) return false;
       if (filterType === 'tasks' && t.isHabit) return false;
       if (filterType === 'habits' && !t.isHabit) return false;
       return true;
@@ -107,6 +128,8 @@
     if (filtered.length === 0) {
       const emptyMsg = todayFilterActive
         ? '<div class="icon">🎉</div><p>No tasks due today or overdue — enjoy your day!</p>'
+        : filterType === 'backlog'
+        ? '<div class="icon">📥</div><p>Your backlog is empty. Check "Add to backlog" when editing a task to park it here.</p>'
         : '<div class="icon">📭</div><p>No tasks found. Try adjusting your filters.</p>';
       tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">${emptyMsg}</div></td></tr>`;
     } else {
@@ -162,7 +185,7 @@
   let _wasAllDone = false;
 
   function updateStats() {
-    const nonHabits = tasks.filter(t => !t.isHabit);
+    const nonHabits = tasks.filter(t => !t.isHabit && !t.backlog);
     const total = nonHabits.length;
     const done = nonHabits.filter(t => t.completed).length;
 
@@ -263,12 +286,13 @@
     const container = document.getElementById('stats-page');
 
     // All tasks with completedAt — also seed pre-existing completed tasks with today if no timestamp
-    const completedTasks = tasks.filter(t => t.completed);
+    // Backlog tasks are parked and excluded from stats.
+    const completedTasks = tasks.filter(t => t.completed && !t.backlog);
     completedTasks.forEach(t => {
       if (!t.completedAt) t.completedAt = TODAY + 'T12:00:00.000Z';
     });
 
-    const total = tasks.length;
+    const total = tasks.filter(t => !t.backlog).length;
     const done = completedTasks.length;
     const pending = total - done;
     const rate = total > 0 ? Math.round(done / total * 100) : 0;

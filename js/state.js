@@ -52,7 +52,7 @@
   function saveState() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        tasks, categories, catColors, colWidths, nextId,
+        tasks, categories, catColors, archivedCategories, colWidths, nextId,
         trackers, nextTrackerId,
         theme: currentTheme,
         title: document.getElementById('site-title')?.textContent.trim() || 'My Workspace',
@@ -87,6 +87,9 @@
   let tasks      = _saved?.tasks      ?? DEFAULT_TASKS;
   let categories = _saved?.categories ?? ['School', 'Work', 'Job', 'Personal'];
   let catColors  = _saved?.catColors  ?? {};
+  // Names of categories that are archived: hidden from the task/grid pickers but
+  // still filterable, and existing tasks keep their assignment. Subset of `categories`.
+  let archivedCategories = _saved?.archivedCategories ?? [];
   let colWidths  = _saved?.colWidths  ?? {};
   let nextId     = _saved?.nextId     ?? 10;
   let trackers   = _saved?.trackers   ?? [];
@@ -100,11 +103,11 @@
   const _td = new Date();
   const TODAY = `${_td.getFullYear()}-${String(_td.getMonth()+1).padStart(2,'0')}-${String(_td.getDate()).padStart(2,'0')}`;
 
-  let filterType = 'all'; // 'all' | 'tasks' | 'habits'
+  let filterType = 'all'; // 'all' | 'tasks' | 'habits' | 'tracker' | 'backlog'
 
   function setTypeFilter(type) {
     filterType = type;
-    ['all','tasks','habits','tracker'].forEach(t => {
+    ['all','tasks','habits','tracker','backlog'].forEach(t => {
       const el = document.getElementById('tab-' + t);
       if (el) el.classList.toggle('active', t === type);
     });
