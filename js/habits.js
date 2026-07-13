@@ -31,6 +31,21 @@
     return days.slice().sort((a,b)=>a-b).map(d => DAY_ABBR[d]).join(' · ');
   }
 
+  // Toggle a habit's completion for a specific day (used by the stats heatmap).
+  // Refuses future dates; keeps the "done today" flag in sync when toggling today.
+  function toggleHabitDay(id, ymd) {
+    const t = tasks.find(t => t.id === id);
+    if (!t || !t.isHabit || ymd > TODAY) return;
+    if (!t.completedDates) t.completedDates = [];
+    const idx = t.completedDates.indexOf(ymd);
+    if (idx === -1) t.completedDates.push(ymd);
+    else t.completedDates.splice(idx, 1);
+    if (ymd === TODAY) t.completed = t.completedDates.includes(TODAY);
+    saveState();
+    renderStats();
+    renderTable();
+  }
+
   function getHabitStreak(t) {
     if (!t.completedDates || t.completedDates.length === 0) return 0;
     const doneSet = new Set(t.completedDates);

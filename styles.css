@@ -2305,7 +2305,8 @@ body.col-resizing * {
 .habit-cal-day.done { background: var(--accent); border-color: var(--accent-mid); }
 .habit-cal-day.skipped { background: var(--surface2); opacity: 0.4; }
 .habit-cal-day.future { background: transparent; border-color: transparent; }
-.habit-cal-day:hover { transform: scale(1.3); z-index: 2; }
+.habit-cal-day.clickable { cursor: pointer; }
+.habit-cal-day.clickable:hover { transform: scale(1.3); z-index: 2; box-shadow: 0 0 0 2px var(--accent-light); }
 
 /* ── Inline quick-add row ─────────────────────────── */
 #quick-add-row td {

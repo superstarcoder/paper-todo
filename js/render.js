@@ -533,12 +533,15 @@
             const ymd = toYMD(d);
             const isFuture = ymd > TODAY;
             const isScheduled = days.includes(d.getDay());
+            const clickable = !isFuture && isScheduled;
             let cls = 'habit-cal-day';
             if (isFuture) cls += ' future';
             else if (!isScheduled) cls += ' skipped';
             else if (doneSet.has(ymd)) cls += ' done';
-            const label = `${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]} ${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}${doneSet.has(ymd) ? ' ✓' : ''}`;
-            calHtml += `<div class="${cls}" title="${label}"></div>`;
+            if (clickable) cls += ' clickable';
+            const label = `${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]} ${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}${doneSet.has(ymd) ? ' ✓' : clickable ? ' · click to mark done' : ''}`;
+            const onclick = clickable ? ` onclick="toggleHabitDay(${h.id}, '${ymd}')"` : '';
+            calHtml += `<div class="${cls}"${onclick} title="${label}"></div>`;
           }
           calHtml += '</div>';
         }
